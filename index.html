@@ -228,15 +228,51 @@
         .clickable:hover {
             transform: scale(1.1);
         }
+
+        /* Collapsible controls */
+        #controls {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        #controls.collapsed {
+            transform: translateX(calc(100% - 50px));
+        }
+
+        #controlsToggle {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            background: rgba(100, 181, 246, 0.9);
+            border: none;
+            border-radius: 0 25px 25px 0;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+
+        #controlsToggle:hover {
+            background: rgba(100, 181, 246, 1);
+            width: 55px;
+        }
+
+        #controlsToggle.collapsed {
+            transform: translateY(-50%) rotate(180deg);
+        }
     </style>
 </head>
 <body>
     <div id="container">
         <div id="title">Milky Way Solar System</div>
-        <div id="version">v1.09</div>
+        <div id="version">v1.10</div>
         <div id="tooltip"></div>
         
         <div id="controls">
+            <button id="controlsToggle" title="Toggle Controls">◀</button>
             <div class="control-group">
                 <h3>Camera</h3>
                 <div class="control-item">
@@ -797,6 +833,25 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Collapsible controls functionality
+        let controlsCollapsed = false;
+        const controlsToggle = document.getElementById('controlsToggle');
+        const controls = document.getElementById('controls');
+
+        controlsToggle.addEventListener('click', () => {
+            controlsCollapsed = !controlsCollapsed;
+            
+            if (controlsCollapsed) {
+                controls.classList.add('collapsed');
+                controlsToggle.classList.add('collapsed');
+                controlsToggle.textContent = '▶';
+            } else {
+                controls.classList.remove('collapsed');
+                controlsToggle.classList.remove('collapsed');
+                controlsToggle.textContent = '◀';
+            }
         });
 
         // Start animation
