@@ -268,7 +268,7 @@
 <body>
     <div id="container">
         <div id="title">Milky Way Solar System</div>
-        <div id="version">v1.12</div>
+        <div id="version">v1.13</div>
         <div id="tooltip"></div>
         
         <div id="controls">
@@ -361,13 +361,23 @@
     </div>
 
     <script>
+        // Error handling
+        window.addEventListener('error', function(e) {
+            console.error('JavaScript error:', e.error);
+        });
+
         // Scene setup
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setClearColor(0x000011);
-        document.getElementById('container').appendChild(renderer.domElement);
+        try {
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000011);
+            document.getElementById('container').appendChild(renderer.domElement);
+            console.log('Three.js scene created successfully');
+        } catch (error) {
+            console.error('Error creating Three.js scene:', error);
+        }
 
         // Controls
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -856,11 +866,19 @@
         });
 
         // Start animation
-        console.log('Starting solar system animation...');
-        console.log('Scene objects:', scene.children.length);
-        console.log('Planets created:', planetObjects.length);
-        console.log('Camera position:', camera.position);
-        animate();
+        try {
+            console.log('Starting solar system animation...');
+            console.log('Scene objects:', scene.children.length);
+            console.log('Planets created:', planetObjects.length);
+            console.log('Camera position:', camera.position);
+            
+            // Force initial render
+            renderer.render(scene, camera);
+            
+            animate();
+        } catch (error) {
+            console.error('Error starting animation:', error);
+        }
     </script>
 </body>
 </html>
