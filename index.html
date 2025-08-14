@@ -268,7 +268,7 @@
 <body>
     <div id="container">
         <div id="title">Milky Way Solar System</div>
-        <div id="version">v1.11</div>
+        <div id="version">v1.12</div>
         <div id="tooltip"></div>
         
         <div id="controls">
@@ -722,7 +722,8 @@
 
 
         // Camera position
-        camera.position.set(0, 50, 100);
+        camera.position.set(0, 30, 150);
+        camera.lookAt(0, 0, 0);
         controls.update();
 
         // Animation variables
@@ -855,6 +856,10 @@
         });
 
         // Start animation
+        console.log('Starting solar system animation...');
+        console.log('Scene objects:', scene.children.length);
+        console.log('Planets created:', planetObjects.length);
+        console.log('Camera position:', camera.position);
         animate();
     </script>
 </body>
