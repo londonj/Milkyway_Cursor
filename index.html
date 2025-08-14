@@ -218,12 +218,22 @@
             color: #f06292 !important;
             font-weight: 500;
         }
+
+        /* Clickable object styles */
+        .clickable {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .clickable:hover {
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body>
     <div id="container">
         <div id="title">Milky Way Solar System</div>
-        <div id="version">v1.0</div>
+        <div id="version">v1.01</div>
         <div id="tooltip"></div>
         
         <div id="controls">
@@ -517,6 +527,93 @@
 
         // Add mouse move event listener
         window.addEventListener('mousemove', onMouseMove);
+
+        // Click functionality for centering camera
+        let isAnimating = false;
+        let targetPosition = new THREE.Vector3();
+        let startPosition = new THREE.Vector3();
+
+        function onMouseClick(event) {
+            if (isAnimating) return; // Prevent multiple animations
+
+            // Calculate mouse position in normalized device coordinates
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            // Update the picking ray with the camera and mouse position
+            raycaster.setFromCamera(mouse, camera);
+
+            // Create array of objects to check for intersection
+            const objectsToCheck = [sun, ...planetObjects];
+            const intersects = raycaster.intersectObjects(objectsToCheck);
+
+            if (intersects.length > 0) {
+                const clickedObject = intersects[0].object;
+                centerCameraOnObject(clickedObject);
+            }
+        }
+
+        function centerCameraOnObject(object) {
+            isAnimating = true;
+            
+            // Store current camera position
+            startPosition.copy(camera.position);
+            
+            // Calculate target position based on object position and size
+            const objectSize = object.userData.size || 4;
+            const distance = objectSize * 8; // Distance multiplier for good viewing angle
+            
+            // Calculate offset based on object's current position
+            const offset = new THREE.Vector3(
+                Math.sin(camera.position.x * 0.01) * distance,
+                distance * 0.3, // Slight elevation
+                Math.cos(camera.position.z * 0.01) * distance
+            );
+            
+            targetPosition.copy(object.position).add(offset);
+            
+            // Animate camera
+            animateCameraToTarget();
+        }
+
+        function animateCameraToTarget() {
+            const duration = 2000; // 2 seconds
+            const startTime = Date.now();
+            
+            function updateCamera() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Easing function for smooth animation
+                const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+                
+                // Interpolate camera position
+                camera.position.lerpVectors(startPosition, targetPosition, easeOutCubic);
+                
+                // Look at the target object
+                const objectsToCheck = [sun, ...planetObjects];
+                const centerObject = objectsToCheck.find(obj => 
+                    obj.position.distanceTo(camera.position) < 100
+                );
+                
+                if (centerObject) {
+                    camera.lookAt(centerObject.position);
+                }
+                
+                controls.update();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateCamera);
+                } else {
+                    isAnimating = false;
+                }
+            }
+            
+            updateCamera();
+        }
+
+        // Add click event listener
+        window.addEventListener('click', onMouseClick);
 
         // Camera position
         camera.position.set(0, 50, 100);
