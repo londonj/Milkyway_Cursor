@@ -233,7 +233,7 @@
 <body>
     <div id="container">
         <div id="title">Milky Way Solar System</div>
-        <div id="version">v1.04</div>
+        <div id="version">v1.05</div>
         <div id="tooltip"></div>
         
         <div id="controls">
@@ -525,12 +525,6 @@
             tooltip.classList.remove('show');
         }
 
-        // Add mouse move event listener
-        window.addEventListener('mousemove', onMouseMove);
-
-        // Add click event listener
-        window.addEventListener('click', onMouseClick);
-
         // Click functionality for centering camera
         let isAnimating = false;
         let targetPosition = new THREE.Vector3();
@@ -607,6 +601,12 @@
             
             updateCamera();
         }
+
+        // Add mouse move event listener
+        window.addEventListener('mousemove', onMouseMove);
+
+        // Add click event listener
+        window.addEventListener('click', onMouseClick);
 
 
 
