@@ -233,7 +233,7 @@
 <body>
     <div id="container">
         <div id="title">Milky Way Solar System</div>
-        <div id="version">v1.06</div>
+        <div id="version">v1.07</div>
         <div id="tooltip"></div>
         
         <div id="controls">
@@ -346,7 +346,7 @@
         scene.add(sunLight);
 
         // Create stars background
-        function createStars() {
+        function createStars(density = 5000) {
             const starsGeometry = new THREE.BufferGeometry();
             const starsMaterial = new THREE.PointsMaterial({
                 color: 0xffffff,
@@ -356,7 +356,7 @@
             });
 
             const starsVertices = [];
-            for (let i = 0; i < 5000; i++) {
+            for (let i = 0; i < density; i++) {
                 const x = (Math.random() - 0.5) * 2000;
                 const y = (Math.random() - 0.5) * 2000;
                 const z = (Math.random() - 0.5) * 2000;
@@ -673,10 +673,9 @@
             document.getElementById('starDensityValue').textContent = density;
             // Recreate stars with new density
             scene.remove(stars);
-            const newStars = createStars();
             stars.geometry.dispose();
             stars.material.dispose();
-            Object.assign(stars, newStars);
+            stars = createStars(density);
         });
 
         // Animation loop
