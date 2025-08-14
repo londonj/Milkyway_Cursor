@@ -233,7 +233,7 @@
 <body>
     <div id="container">
         <div id="title">Milky Way Solar System</div>
-        <div id="version">v1.01</div>
+        <div id="version">v1.02</div>
         <div id="tooltip"></div>
         
         <div id="controls">
@@ -549,7 +549,10 @@
 
             if (intersects.length > 0) {
                 const clickedObject = intersects[0].object;
+                console.log('Clicked on:', clickedObject.userData.name);
                 centerCameraOnObject(clickedObject);
+            } else {
+                console.log('No object clicked');
             }
         }
 
@@ -561,16 +564,13 @@
             
             // Calculate target position based on object position and size
             const objectSize = object.userData.size || 4;
-            const distance = objectSize * 8; // Distance multiplier for good viewing angle
+            const distance = objectSize * 6; // Distance multiplier for good viewing angle
             
-            // Calculate offset based on object's current position
-            const offset = new THREE.Vector3(
-                Math.sin(camera.position.x * 0.01) * distance,
-                distance * 0.3, // Slight elevation
-                Math.cos(camera.position.z * 0.01) * distance
-            );
+            // Calculate direction from object to camera
+            const direction = new THREE.Vector3().subVectors(camera.position, object.position).normalize();
             
-            targetPosition.copy(object.position).add(offset);
+            // Set target position at a good viewing distance from the object
+            targetPosition.copy(object.position).add(direction.multiplyScalar(distance));
             
             // Animate camera
             animateCameraToTarget();
@@ -590,15 +590,8 @@
                 // Interpolate camera position
                 camera.position.lerpVectors(startPosition, targetPosition, easeOutCubic);
                 
-                // Look at the target object
-                const objectsToCheck = [sun, ...planetObjects];
-                const centerObject = objectsToCheck.find(obj => 
-                    obj.position.distanceTo(camera.position) < 100
-                );
-                
-                if (centerObject) {
-                    camera.lookAt(centerObject.position);
-                }
+                // Always look at the target object during animation
+                camera.lookAt(targetPosition);
                 
                 controls.update();
                 
