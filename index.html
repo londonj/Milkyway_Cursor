@@ -233,7 +233,7 @@
 <body>
     <div id="container">
         <div id="title">Milky Way Solar System</div>
-        <div id="version">v1.08</div>
+        <div id="version">v1.09</div>
         <div id="tooltip"></div>
         
         <div id="controls">
@@ -369,16 +369,16 @@
             return stars;
         }
 
-        // Planet data
+        // Planet data with enhanced properties
         const planets = [
-            { name: 'Mercury', distance: 10, size: 0.8, color: 0x8c7853, speed: 4.7, info: 'Closest planet to the Sun. Surface temperature varies from -180°C to 430°C.' },
-            { name: 'Venus', distance: 15, size: 1.2, color: 0xe39e1c, speed: 3.5, info: 'Hottest planet in our solar system. Thick atmosphere traps heat.' },
-            { name: 'Earth', distance: 20, size: 1.3, color: 0x6b93d6, speed: 3.0, info: 'Our home planet. Only known planet with life. Has one natural satellite.' },
-            { name: 'Mars', distance: 25, size: 1.0, color: 0xc1440e, speed: 2.4, info: 'The Red Planet. Has the largest volcano in the solar system.' },
-            { name: 'Jupiter', distance: 35, size: 3.0, color: 0xd8ca9d, speed: 1.3, info: 'Largest planet in our solar system. Gas giant with 79 known moons.' },
-            { name: 'Saturn', distance: 45, size: 2.5, color: 0xfad5a5, speed: 0.9, info: 'Famous for its spectacular ring system. Second largest planet.' },
-            { name: 'Uranus', distance: 55, size: 1.8, color: 0x4fd0e7, speed: 0.6, info: 'Ice giant planet. Rotates on its side with rings around its equator.' },
-            { name: 'Neptune', distance: 65, size: 1.7, color: 0x4b70dd, speed: 0.5, info: 'Windiest planet with speeds up to 2,100 km/h. Deep blue color.' }
+            { name: 'Mercury', distance: 10, size: 0.8, color: 0x8c7853, speed: 4.7, type: 'rocky', info: 'Closest planet to the Sun. Surface temperature varies from -180°C to 430°C.' },
+            { name: 'Venus', distance: 15, size: 1.2, color: 0xe39e1c, speed: 3.5, type: 'rocky', hasAtmosphere: true, info: 'Hottest planet in our solar system. Thick atmosphere traps heat.' },
+            { name: 'Earth', distance: 20, size: 1.3, color: 0x6b93d6, speed: 3.0, type: 'rocky', hasAtmosphere: true, hasWater: true, info: 'Our home planet. Only known planet with life. Has one natural satellite.' },
+            { name: 'Mars', distance: 25, size: 1.0, color: 0xc1440e, speed: 2.4, type: 'rocky', info: 'The Red Planet. Has the largest volcano in the solar system.' },
+            { name: 'Jupiter', distance: 35, size: 3.0, color: 0xd8ca9d, speed: 1.3, type: 'gas', bands: true, info: 'Largest planet in our solar system. Gas giant with 79 known moons.' },
+            { name: 'Saturn', distance: 45, size: 2.5, color: 0xfad5a5, speed: 0.9, type: 'gas', hasRings: true, bands: true, info: 'Famous for its spectacular ring system. Second largest planet.' },
+            { name: 'Uranus', distance: 55, size: 1.8, color: 0x4fd0e7, speed: 0.6, type: 'ice', tilt: true, info: 'Ice giant planet. Rotates on its side with rings around its equator.' },
+            { name: 'Neptune', distance: 65, size: 1.7, color: 0x4b70dd, speed: 0.5, type: 'ice', storms: true, info: 'Windiest planet with speeds up to 2,100 km/h. Deep blue color.' }
         ];
 
         // Create Sun
@@ -409,14 +409,58 @@
         const sunGlow = new THREE.Mesh(sunGlowGeometry, sunGlowMaterial);
         scene.add(sunGlow);
 
+        // Function to create planet material based on type
+        function createPlanetMaterial(planetData) {
+            let material;
+            
+            if (planetData.type === 'gas') {
+                // Gas giants with banded appearance
+                material = new THREE.MeshLambertMaterial({ 
+                    color: planetData.color,
+                    transparent: true,
+                    opacity: 0.9
+                });
+            } else if (planetData.type === 'ice') {
+                // Ice giants with subtle glow
+                material = new THREE.MeshLambertMaterial({ 
+                    color: planetData.color,
+                    emissive: planetData.color,
+                    emissiveIntensity: 0.1
+                });
+            } else {
+                // Rocky planets
+                material = new THREE.MeshLambertMaterial({ 
+                    color: planetData.color,
+                    roughness: 0.8
+                });
+            }
+            
+            return material;
+        }
+
+        // Function to create Saturn's rings
+        function createSaturnRings(planetData) {
+            const ringGeometry = new THREE.RingGeometry(planetData.size * 1.5, planetData.size * 2.5, 64);
+            const ringMaterial = new THREE.MeshLambertMaterial({
+                color: 0xc4a484,
+                transparent: true,
+                opacity: 0.6,
+                side: THREE.DoubleSide
+            });
+            const rings = new THREE.Mesh(ringGeometry, ringMaterial);
+            rings.rotation.x = Math.PI / 2; // Rotate to be horizontal
+            return rings;
+        }
+
         // Create planets and orbits
         const planetObjects = [];
         const orbitLines = [];
+        const planetRings = [];
 
         planets.forEach((planetData, index) => {
-            // Create planet
+            // Create planet with enhanced material
             const planetGeometry = new THREE.SphereGeometry(planetData.size, 32, 32);
-            const planetMaterial = new THREE.MeshLambertMaterial({ color: planetData.color });
+            const planetMaterial = createPlanetMaterial(planetData);
             const planet = new THREE.Mesh(planetGeometry, planetMaterial);
             
             // Position planet
@@ -434,6 +478,25 @@
             
             scene.add(planet);
             planetObjects.push(planet);
+
+            // Add special features
+            if (planetData.hasRings && planetData.name === 'Saturn') {
+                const rings = createSaturnRings(planetData);
+                planet.add(rings); // Attach rings to planet so they move together
+                planetRings.push(rings);
+            }
+
+            // Add atmospheric glow for planets with atmospheres
+            if (planetData.hasAtmosphere) {
+                const glowGeometry = new THREE.SphereGeometry(planetData.size * 1.1, 32, 32);
+                const glowMaterial = new THREE.MeshBasicMaterial({
+                    color: planetData.color,
+                    transparent: true,
+                    opacity: 0.2
+                });
+                const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+                planet.add(glow);
+            }
 
             // Create orbit line
             const orbitGeometry = new THREE.BufferGeometry();
@@ -707,8 +770,13 @@
                 planet.position.x = Math.cos(planet.userData.angle) * planetData.distance;
                 planet.position.z = Math.sin(planet.userData.angle) * planetData.distance;
                 
-                // Rotate planet on its axis
-                planet.rotation.y += 0.02 * rotationSpeed;
+                // Rotate planet on its axis (with special rotation for Uranus)
+                if (planetData.name === 'Uranus') {
+                    // Uranus rotates on its side
+                    planet.rotation.z += 0.02 * rotationSpeed;
+                } else {
+                    planet.rotation.y += 0.02 * rotationSpeed;
+                }
             });
 
             // Animate camera (only if not manually animating to an object)
