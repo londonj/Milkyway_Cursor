@@ -233,7 +233,7 @@
 <body>
     <div id="container">
         <div id="title">Milky Way Solar System</div>
-        <div id="version">v1.07</div>
+        <div id="version">v1.08</div>
         <div id="tooltip"></div>
         
         <div id="controls">
@@ -458,7 +458,7 @@
         });
 
         // Create stars
-        const stars = createStars();
+        let stars = createStars();
 
         // Raycasting for tooltips
         const raycaster = new THREE.Raycaster();
@@ -529,6 +529,7 @@
         let isAnimating = false;
         let targetPosition = new THREE.Vector3();
         let startPosition = new THREE.Vector3();
+        let targetObject = null;
 
         function onMouseClick(event) {
             if (isAnimating) return; // Prevent multiple animations
@@ -555,6 +556,12 @@
 
         function centerCameraOnObject(object) {
             isAnimating = true;
+            targetObject = object;
+            
+            // Disable auto rotate when centering on object
+            const wasAutoRotating = autoRotate;
+            autoRotate = false;
+            controls.autoRotate = false;
             
             // Store current camera position
             startPosition.copy(camera.position);
@@ -588,7 +595,11 @@
                 camera.position.lerpVectors(startPosition, targetPosition, easeOutCubic);
                 
                 // Always look at the target object during animation
-                camera.lookAt(targetPosition);
+                if (targetObject) {
+                    camera.lookAt(targetObject.position);
+                } else {
+                    camera.lookAt(0, 0, 0);
+                }
                 
                 controls.update();
                 
@@ -596,6 +607,7 @@
                     requestAnimationFrame(updateCamera);
                 } else {
                     isAnimating = false;
+                    targetObject = null;
                 }
             }
             
@@ -699,8 +711,8 @@
                 planet.rotation.y += 0.02 * rotationSpeed;
             });
 
-            // Animate camera
-            if (autoRotate) {
+            // Animate camera (only if not manually animating to an object)
+            if (autoRotate && !isAnimating) {
                 const time = Date.now() * 0.001 * cameraSpeed;
                 camera.position.x = Math.cos(time * 0.1) * cameraDistance;
                 camera.position.z = Math.sin(time * 0.1) * cameraDistance;
